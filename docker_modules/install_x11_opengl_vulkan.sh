@@ -13,7 +13,7 @@ echo "Installing GUI debugging tools..."
 # - `vulkan-tools` for `vkcube` and `vulkaninfo`
 #   Ref: https://docs.vulkan.org/tutorial/latest/02_Development_environment.html#_vulkan_packages
 #   Ref: https://gitlab.com/nvidia/container-images/vulkan/-/blob/master/docker/Dockerfile.ubuntu
-apt-get update && apt-get install -y \
+apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     x11-apps x11-utils \
     mesa-utils \
     libgl1 vulkan-tools \

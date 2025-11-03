@@ -28,7 +28,7 @@ if [ "$TARGETARCH" == "amd64" ]; then
     dpkg -i cuda-keyring_1.1-1_all.deb
     rm cuda-keyring_1.1-1_all.deb
     apt-get update
-    apt-get -y install cuda-toolkit-${CUDA_TOOLKIT_VERSION//./-}
+    DEBIAN_FRONTEND=noninteractive apt-get -y install cuda-toolkit-${CUDA_TOOLKIT_VERSION//./-}
     rm -rf /var/lib/apt/lists/*
 
     # Note: CUDA samples are not downloaded to minimize image size

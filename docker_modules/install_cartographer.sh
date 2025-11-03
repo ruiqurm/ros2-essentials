@@ -11,7 +11,7 @@ fi
 if [ "$CARTOGRAPHER" = "YES" ]; then
     echo "Installing cartographer and turtlebot3 packages for ROS distro: ${ROS_DISTRO:-humble}"
 
-    sudo apt-get update && sudo apt-get install -y \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ros-${ROS_DISTRO}-cartographer \
         ros-${ROS_DISTRO}-turtlebot3* \
         ros-${ROS_DISTRO}-rqt-robot-steering \

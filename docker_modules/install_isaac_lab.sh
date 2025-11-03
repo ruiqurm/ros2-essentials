@@ -41,7 +41,7 @@ fi
 if [ "$ISAAC_LAB_VERSION" = "2.2.1" ]; then
     echo "Installing Isaac Lab 2.2.1..."
     # Ref: https://isaac-sim.github.io/IsaacLab/v2.2.1/source/setup/installation/binaries_installation.html
-    sudo apt-get update && sudo apt-get install -y \
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
         cmake build-essential \
         && sudo rm -rf /var/lib/apt/lists/* \
         || exit 1

@@ -21,8 +21,14 @@ if [ -z "$ISAACSIM_PATH" ]; then
     exit 1
 fi
 
+ISAAC_SIM_INSTALL_METHOD=${ISAAC_SIM_INSTALL_METHOD:-standalone}
+ISAAC_SIM_PYTHON_BIN=${ISAAC_SIM_PYTHON_BIN:-python3.11}
+ISAACSIM_PYTHON_VERSION=${ISAACSIM_PYTHON_VERSION:-3.11}
+
 echo "Installing Isaac Sim components for architecture: $TARGETARCH"
 echo "Isaac Sim version: $ISAAC_SIM_VERSION"
+echo "Isaac Sim install method: $ISAAC_SIM_INSTALL_METHOD"
+echo "Isaac Sim python interpreter: $ISAAC_SIM_PYTHON_BIN"
 
 # Only install Isaac Sim components on amd64 architecture
 if [ "$TARGETARCH" != "amd64" ]; then
@@ -31,12 +37,29 @@ if [ "$TARGETARCH" != "amd64" ]; then
 fi
 
 echo "Installing 'libglu1-mesa' for Iray and 'libxrandr2' to support Isaac Sim WebRTC streaming..."
-sudo apt-get update && sudo apt-get install -y \
+sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
     libglu1-mesa libxrandr2 \
     && sudo rm -rf /var/lib/apt/lists/* \
     || exit 1
 
-if [ "$ISAAC_SIM_VERSION" = "4.5.0" ]; then
+if [ "$ISAAC_SIM_INSTALL_METHOD" = "pip" ]; then
+    if [ "$ISAAC_SIM_VERSION" != "5.0.0" ]; then
+        echo "Error: Pip installation method only supports Isaac Sim version 5.0.0 (requested $ISAAC_SIM_VERSION)"
+        exit 1
+    fi
+    if ! command -v "$ISAAC_SIM_PYTHON_BIN" >/dev/null 2>&1; then
+        echo "Error: $ISAAC_SIM_PYTHON_BIN is required for pip installation but was not found"
+        exit 1
+    fi
+    echo "Installing Isaac Sim $ISAAC_SIM_VERSION via pip..."
+    "$ISAAC_SIM_PYTHON_BIN" -m pip install --upgrade pip || exit 1
+    "$ISAAC_SIM_PYTHON_BIN" -m pip install \
+        --extra-index-url https://pypi.nvidia.com \
+        "isaacsim[all,extscache]==$ISAAC_SIM_VERSION" \
+        || exit 1
+
+    ISAACSIM_SITE_PACKAGES_DIR=${ISAACSIM_SITE_PACKAGES_DIR:-/home/$USERNAME/.local/lib/python${ISAACSIM_PYTHON_VERSION}/site-packages}
+elif [ "$ISAAC_SIM_VERSION" = "4.5.0" ]; then
     echo "Installing Isaac Sim Compatibility Checker 4.5.0..."
     # Note: The Isaac Sim Compatibility Checker is installed since its usefulness outweighs the image size increase
     # Ref: https://docs.isaacsim.omniverse.nvidia.com/4.5.0/installation/requirements.html#isaac-sim-compatibility-checker
@@ -93,18 +116,32 @@ fi
 echo "Creating Isaac Sim directories with correct ownership to avoid permission issues after volume mount..."
 sudo mkdir -p /isaac-sim && sudo chown $USERNAME:$USERNAME /isaac-sim || exit 1
 
-if [ "$ISAAC_SIM_VERSION" = "4.5.0" ]; then
-    echo "Creating Isaac Sim 4.5.0 specific directories with correct ownership to avoid permission issues after volume mount..."
+if [ "$ISAAC_SIM_INSTALL_METHOD" = "pip" ]; then
+    SITE_PACKAGES_DIR=${ISAACSIM_SITE_PACKAGES_DIR:-/home/$USERNAME/.local/lib/python${ISAACSIM_PYTHON_VERSION}/site-packages}
     mkdir -p /isaac-sim/kit/cache \
         && mkdir -p /home/$USERNAME/.cache/ov \
-        && mkdir -p /home/$USERNAME/.local/lib/python3.10/site-packages/omni/cache \
+        && mkdir -p "$SITE_PACKAGES_DIR/omni/cache" \
         && mkdir -p /home/$USERNAME/.cache/pip \
         && mkdir -p /home/$USERNAME/.cache/nvidia/GLCache \
         && mkdir -p /home/$USERNAME/.nv/ComputeCache \
         && mkdir -p /home/$USERNAME/.nvidia-omniverse/logs \
-        && mkdir -p /home/$USERNAME/.local/lib/python3.10/site-packages/omni/logs \
+        && mkdir -p "$SITE_PACKAGES_DIR/omni/logs" \
         && mkdir -p /home/$USERNAME/.local/share/ov/data \
-        && mkdir -p /home/$USERNAME/.local/lib/python3.10/site-packages/omni/data \
+        && mkdir -p "$SITE_PACKAGES_DIR/omni/data" \
+        && mkdir -p /home/$USERNAME/Documents \
+        || exit 1
+elif [ "$ISAAC_SIM_VERSION" = "4.5.0" ]; then
+    echo "Creating Isaac Sim 4.5.0 specific directories with correct ownership to avoid permission issues after volume mount..."
+    mkdir -p /isaac-sim/kit/cache \
+        && mkdir -p /home/$USERNAME/.cache/ov \
+        && mkdir -p /home/$USERNAME/.local/lib/python3.11/site-packages/omni/cache \
+        && mkdir -p /home/$USERNAME/.cache/pip \
+        && mkdir -p /home/$USERNAME/.cache/nvidia/GLCache \
+        && mkdir -p /home/$USERNAME/.nv/ComputeCache \
+        && mkdir -p /home/$USERNAME/.nvidia-omniverse/logs \
+        && mkdir -p /home/$USERNAME/.local/lib/python3.11/site-packages/omni/logs \
+        && mkdir -p /home/$USERNAME/.local/share/ov/data \
+        && mkdir -p /home/$USERNAME/.local/lib/python3.11/site-packages/omni/data \
         && mkdir -p /home/$USERNAME/Documents \
         || exit 1
 elif [ "$ISAAC_SIM_VERSION" = "5.0.0" ]; then

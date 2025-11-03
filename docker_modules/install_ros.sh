@@ -54,22 +54,22 @@ esac
 DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 
 # Set locale
-apt-get install -y locales
+DEBIAN_FRONTEND=noninteractive apt-get install -y locales
 locale-gen en_US en_US.UTF-8
 update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 export LANG=en_US.UTF-8
 
 # Setup Sources
-apt-get install -y software-properties-common
+DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common
 add-apt-repository universe
 export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}')
 curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo $VERSION_CODENAME)_all.deb" # If using Ubuntu derivates use $UBUNTU_CODENAME
-apt-get install -y /tmp/ros2-apt-source.deb
+DEBIAN_FRONTEND=noninteractive apt-get install -y /tmp/ros2-apt-source.deb
 rm -rf /tmp/ros2-apt-source.deb
 
 # Install ROS 2 packages
-apt-get update && apt-get upgrade -y || exit 1
-apt-get install -y \
+apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y || exit 1
+DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ros-$ROS_DISTRO-desktop \
     ros-dev-tools
 
@@ -81,7 +81,7 @@ rosdep init
 # - https://docs.ros.org/en/humble/How-To-Guides/DDS-tuning.html#cyclone-dds-tuning
 # - https://github.com/ros2/rmw_cyclonedds/blob/406277084be4352fa48357047ed56be69e4942e5/README.md
 # - https://github.com/eclipse-cyclonedds/cyclonedds/blob/ad48dc88a1da2e362c56ff1325d085ba514c0c74/README.md#run-time-configuration
-apt-get install -y \
+DEBIAN_FRONTEND=noninteractive apt-get install -y \
     ros-$ROS_DISTRO-rmw-cyclonedds-cpp
 
 # Install Gazebo
@@ -91,12 +91,12 @@ apt-get install -y \
 # - https://gazebosim.org/docs/latest/migrating_gazebo_classic_ros2_packages/
 if { [ "$ROS_DISTRO" = "foxy" ] || [ "$ROS_DISTRO" = "humble" ]; } && [ "$TARGETARCH" = "amd64" ]; then
     echo "Installing Gazebo Classic (Fortress) for ROS $ROS_DISTRO..."
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ros-$ROS_DISTRO-gazebo-ros-pkgs \
         ros-$ROS_DISTRO-gazebo-ros2-control
 elif [ "$ROS_DISTRO" = "jazzy" ] && [ "$TARGETARCH" = "amd64" ]; then
     echo "Installing Gazebo Harmonic for ROS Jazzy..."
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
         ros-$ROS_DISTRO-ros-gz
 else
     echo "Skipping Gazebo installation for ROS $ROS_DISTRO (not supported)"
