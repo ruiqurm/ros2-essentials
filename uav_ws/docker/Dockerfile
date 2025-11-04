@@ -63,15 +63,7 @@ RUN python3 -m pip install --upgrade pip \
     wheel \
     twine \
     check-wheel-contents \
-    "packaging==23.0" \
-    && python3.11 -m ensurepip --upgrade \
-    && python3.11 -m pip install --upgrade pip \
-    "setuptools==70.0.0" \
-    wheel \
-    twine \
-    check-wheel-contents \
     "packaging==23.0"
-
 # ROS version configuration
 ARG ROS_DISTRO=humble
 ENV ROS_DISTRO=$ROS_DISTRO
@@ -91,6 +83,20 @@ ENV NVIDIA_DRIVER_CAPABILITIES=all
 COPY modules/install_x11_opengl_vulkan.sh /tmp/install_x11_opengl_vulkan.sh
 RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
     /tmp/install_x11_opengl_vulkan.sh && rm /tmp/install_x11_opengl_vulkan.sh
+
+# Install XFCE desktop environment and VNC server tooling
+COPY modules/install_vnc.sh /tmp/install_vnc.sh
+RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
+    /tmp/install_vnc.sh && rm /tmp/install_vnc.sh
+
+# Copy VNC startup helper into image root
+COPY start_vnc.sh /start_vnc.sh
+RUN chmod +x /start_vnc.sh
+
+# Default VNC runtime configuration
+ENV DISPLAY=:1
+ENV VNC_PORT=5900
+ENV VNC_GEOMETRY=1920x1080
 
 # Install CUDA Toolkit (not installed by default)
 ARG CUDA_TOOLKIT_VERSION="12.8"
@@ -190,5 +196,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
 COPY --chown=$USERNAME:$USERNAME \
      .bashrc /home/$USERNAME/.bashrc
 # TODO: Copy additional files here
+EXPOSE 5900
 ENTRYPOINT []
 CMD ["/bin/bash"]

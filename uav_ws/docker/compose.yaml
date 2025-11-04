@@ -53,10 +53,11 @@ services:
     container_name: ros2-uav-ws
     stdin_open: true
     tty: true
+    ports:
+      - "5900:5900"
     # TODO: Comment the line below if the workspace don't need to communicate through `/dev/*` devices.
     privileged: true
     command: /bin/bash
-    network_mode: host
     working_dir: /home/ros2-essentials/uav_ws
     environment:
       # Set X11 server environment variable for existing display.
