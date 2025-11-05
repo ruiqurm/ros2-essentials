@@ -56,12 +56,10 @@ services:
     ports:
       - "5900:5900"
     # TODO: Comment the line below if the workspace don't need to communicate through `/dev/*` devices.
-    privileged: true
+    privileged: false
     command: /bin/bash
     working_dir: /home/ros2-essentials/uav_ws
     environment:
-      # Set X11 server environment variable for existing display.
-      - DISPLAY=$DISPLAY
       # References:
       # - https://docs.ros.org/en/humble/Concepts/Intermediate/About-Domain-ID.html
       # - https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment.html
@@ -98,11 +96,6 @@ services:
       # Reference: https://stackoverflow.com/questions/57607381/how-do-i-change-timezone-in-a-docker-container
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-      # Mount X11 server
-      - /tmp/.X11-unix:/tmp/.X11-unix
-        # X11-unix is mounted to allow GUI applications to display on host.
-      - $HOME/.Xauthority:/home/user/.Xauthority
-        # Xauthority is mounted to allow X11 forwarding for remote display.
       # Mount Direct Rendering Infrastructure (DRI) for hardware acceleration support such as OpenGL.
       - /dev/dri:/dev/dri
       # Mount sound card to prevent Gazebo warning.
@@ -111,10 +104,6 @@ services:
       - /dev/shm:/dev/shm
       # TODO: Uncomment the line below and comment out the three entries above to enable USB support.
       # - /dev:/dev
-      # Mount Gazebo models directory to reuse models downloaded during first launch.
-      # Reference: https://answers.ros.org/question/365658
-      # Note that this volume is shared among all workspaces.
-      - gazebo-cache:/home/user/.gazebo
       # Note that this volume is shared among all workspaces.
       - isaac-ros-assets:/home/user/workspaces/isaac_ros-dev/isaac_ros_assets
       # Mount CycloneDDS configuration file.
@@ -181,9 +170,6 @@ services:
       # Mount root workspace to allow easy access to all workspaces.
       - ../..:/home/ros2-essentials
 volumes:
-  gazebo-cache:
-    name: ros2-gazebo-cache
-    external: true
   isaac-sim-cache:
     name: ros2-isaac-sim-cache
     external: true
